@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=">
+		<title>后台管理系统</title>
+		<script src="__PUBLIC__/Common/boot.js"></script>
+		<script>
+			$(function() {
+				mini.parse();
+			});
+
+			function onSaveClick() {
+				var groupForm = new mini.Form("groupForm");
+				groupForm.validate();
+				if(!groupForm.isValid()) {
+					return;
+				}
+				if(!mini.get("rulesTree").getValue()) {
+					mini.alert("未分配权限！");
+					return;
+				}
+				var messageid = mini.loading("操作中 ...");
+				$.post("{:U('Sys/group_edit')}", {
+					id : mini.get("id").getValue(),
+					title : mini.get("title").getValue(),
+					rules : mini.get("rulesTree").getValue()
+				}, function(data, status) {
+					mini.hideMessageBox(messageid);
+					if(status && data.success) {
+						parent.mini.showMessageBox({
+							showModal: false,
+							width: 250,
+							title: "提示",
+							iconCls: "mini-messagebox-warning",
+							message: "修改成功",
+							timeout: 1500,
+							x: 'left',
+							y: 'bottom'
+						});
+						onCloseClick();
+					} else if(status) {
+						mini.alert(data.info);
+					} else {
+						mini.alert("网络异常！");
+					}
+				}, "json");
+			}
+
+			function titleRepeatValidation(e) {
+				if(e.isValid && mini.get("title").getValue()!=mini.get("title_bef").getValue()) {
+					$.ajax({
+						type: "get",
+						url: "{:U('Sys/check_group_title')}",
+						async: false,
+						data: {
+							"title": mini.get("title").getValue()
+						},
+						dataType: "json",
+						success: function(data) {
+							if(data == 1) {
+								mini.get("titleIsExist").setValue(1);
+							} else {
+								mini.get("titleIsExist").setValue(0);
+							}
+						}
+					});
+					if(mini.get("titleIsExist").getValue() == 1) {
+						e.errorText = "用户组名称已使用";
+						e.isValid = false;
+					}
+				}
+			}
+		</script>
+	</head>
+
+	<body>
+		<div align="center">
+			<form id="groupForm">
+				<table border="0" cellpadding="1" cellspacing="2">
+					<tr>
+						<td class="mini-item">名称：</td>
+						<td class="mini-content">
+							<input class="mini-hidden" id="id" value=0 />
+							<input class="mini-hidden" id="title_bef" />
+							<input class="mini-textbox" id="title" required="true" onvalidation="titleRepeatValidation" />
+							<input class="mini-hidden" id="titleIsExist" value=0 />
+						</td>
+					</tr>
+					<tr>
+						<td class="mini-item">权限：</td>
+						<td class="mini-content">
+							<ul id="rulesTree" class="mini-tree" url="{:U('Sys/rule_get')}" showTreeIcon="false" 
+								textField="title" expandOnDblClick="false" allowSelect="false" expandOnLoad="0" 
+								showCheckBox="true" checkRecursive="false" autoCheckParent="false">
+							</ul>
+						</td>
+					</tr>
+				</table>
+			</form>
+		</div>
+
+		<div align="center" style="margin-top: 20px;">
+			<a class="mini-button" style="margin-right: 20px;" iconCls="icon-save" onclick="onSaveClick()">保存</a>
+			<a class="mini-button" style="margin-left: 20px;" iconCls="icon-cancel" onclick="onCloseClick()">取消</a>
+		</div>
+	</body>
+
+</html>

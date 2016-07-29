@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=">
+		<title>后台管理系统</title>
+		<script src="__PUBLIC__/Common/boot.js"></script>
+		<script>
+			//全选或全不选
+			function selectAll() {
+				var cache_box = mini.get("cache_box");
+				if(cache_box.getValue() == "") {
+					cache_box.selectAll();
+				} else {
+					cache_box.deselectAll();
+				}
+			}
+
+			//清空缓存
+			function onConfirmClick() {
+				var cache_box = mini.get("cache_box");
+				var messageid = mini.loading("操作中...");
+				$.get("__SELF__", {
+					"clear": cache_box.getValue()
+				}, function(data, status) {
+					mini.hideMessageBox(messageid);
+					if(data.success) {
+						parent.mini.showMessageBox({
+							showModal: false,
+							width: 250,
+							title: "提示",
+							iconCls: "mini-messagebox-warning",
+							message: "缓存已清理",
+							timeout: 1500,
+							x: 'left',
+							y: 'bottom'
+						});
+						onCloseClick();
+					} else if(status) {
+						mini.alert(data.info);
+					} else {
+						mini.alert("网络异常！");
+					}
+				}, "json");
+			}
+		</script>
+	</head>
+
+	<body>
+		<div align="center">
+			<div id="cache_box" class="mini-checkboxlist" repeatItems="4" repeatLayout="table" textField="text" valueField="id" url="__PUBLIC__/Admin/data/cacheData.txt">
+			</div>
+			<div align="center" style="margin-top: 20px;">
+				<a class="mini-button" style="margin-right: 20px;" iconCls="icon-save" onclick="selectAll()">全选</a>
+				<a class="mini-button" style="margin-right: 20px;" iconCls="icon-save" onclick="onConfirmClick()">确定</a>
+				<a class="mini-button" style="margin-right: 20px;" iconCls="icon-cancel" onclick="onCloseClick()">取消</a>
+			</div>
+		</div>
+
+	</body>
+
+</html>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=">
+		<title>后台管理系统</title>
+		<script src="__PUBLIC__/Common/boot.js"></script>
+		<script>
+			$(function() {
+				mini.parse();
+				mini.get("userGrid").on("drawcell", function(e) {
+					var record = e.record,
+						column = e.column,
+						field = e.field,
+						value = e.value;
+					//给帐号列，增加背景色
+					if(field == "account") {
+						e.cellStyle = "background:#ecedef";
+					}
+					//禁用账号，红色标识
+					if(field == "status" && value == 0) {
+						e.cellStyle = "color:red;";
+					}
+					//将性别文本替换成图片
+					if(column.field == "gender") {
+						if(e.value == 1) {
+							e.cellHtml = "<span class='icon-female'></span>"
+						} else {
+							e.cellHtml = "<span class='icon-boy'></span>"
+						}
+					}
+				});
+			})
+
+			function onSearchClick() {
+				var grid = mini.get("userGrid");
+				var searchCondition = new mini.Form("searchCondition");
+				var searchData = searchCondition.getData();
+				grid.load({
+					account: searchData.account,
+					status: searchData.status
+				});
+			}
+
+			function onResetClick() {
+				var searchCondition = new mini.Form("searchCondition");
+				searchCondition.clear();
+			}
+
+			function status(e) {
+				if(e.value == 1) {
+					return '可用';
+				} else if(e.value == 0) {
+					return '禁用';
+				}
+			}
+
+			function addUser() {
+				mini.open({
+					url: "{:U('Sys/user_add_page')}",
+					title: "添加用户",
+					width: 380,
+					height: 220,
+					ondestroy: function(action) {
+						mini.get("userGrid").reload();
+					}
+				});
+			}
+
+			function editUser() {
+				var row = mini.get("userGrid").getSelected();
+				if(row) {
+					mini.open({
+						url: "{:U('Sys/user_edit_page')}",
+						title: "编辑用户",
+						width: 380,
+						height: 190,
+						onload: function() {
+							var iframe = this.getIFrameEl();
+							iframe.contentWindow.SetData(row);
+						},
+						ondestroy: function(action) {
+							mini.get("userGrid").reload();
+						}
+					});
+				} else {
+					mini.alert("请选中一条记录");
+				}
+			}
+
+			function deleteUser() {
+				var rows = mini.get("userGrid").getSelecteds();
+				if(rows.length > 0) {
+					mini.confirm("确定删除记录？", "确定？", function(action) {
+						if(action == "ok") {
+							var ids = [];
+							for(var i = 0, l = rows.length; i < l; i++) {
+								var r = rows[i];
+								ids.push(r.id);
+							}
+							var messageid = mini.loading("操作中，请稍后......");
+							$.post("{:U('Sys/user_delete')}", {
+								"ids": ids
+							}, function(data, status) {
+								mini.hideMessageBox(messageid);
+								if(status && data.success) {
+									onSearchClick();
+									parent.mini.showMessageBox({
+										showModal: false,
+										width: 250,
+										title: "提示",
+										iconCls: "mini-messagebox-warning",
+										message: "删除成功！",
+										timeout: 1500,
+										x: 'left',
+										y: 'bottom'
+									});
+								} else if(status) {
+									mini.alert(data.info);
+								} else {
+									mini.alert("网络异常！");
+								}
+							});
+						}
+					});
+				} else {
+					mini.alert("请选中一条记录");
+				}
+			}
+
+			function onBeforeOpen(e) {
+				var grid = mini.get("userGrid");
+				var menu = e.sender;
+
+				var row = grid.getSelected();
+				var rowIndex = grid.indexOf(row);
+				if(!row) {
+					e.cancel = true;
+					//阻止浏览器默认右键菜单
+					e.htmlEvent.preventDefault();
+					return;
+				}
+				var editItem = mini.getbyName("edit", menu);
+				editItem.enable();
+				if(row.id == 1) {
+					editItem.disable();
+				}
+			}
+		</script>
+	</head>
+
+	<body class="body_fit">
+		<div align="center" style="border: dotted 1px green;">
+			<table id="searchCondition" border="0" cellpadding="1" cellspacing="2" style="width: 700px;">
+				<tr>
+					<td class="mini-item" width="8%">账号：</td>
+					<td class="mini-content" width="40%"><input class="mini-textbox" name="account" style="width: 90%;" /></td>
+					<td class="mini-item" width="8%">状态：</td>
+					<td class="mini-content">
+						<div id="type" class="mini-radiobuttonlist" textField="text" name="status" valueField="id" style="width: 90%;" data="[ {id : 0,text : '禁用'}, {id : 1,text : '可用'} ]"></div>
+					</td>
+
+				</tr>
+			</table>
+			<div align="center" style="margin: 5px;">
+				<a class="mini-button" style="margin-right: 20px;" iconCls="icon-search" onclick="onSearchClick()">查询</a>
+				<a class="mini-button" style="margin-left: 20px;" iconCls="icon-cancel" onclick="onResetClick()">重置</a>
+			</div>
+		</div>
+		<div id="Div" style="padding:0px;padding-top:10px;">
+			<div class="mini-toolbar" style="border-bottom:0;padding:0px;">
+				<table style="width:100%;">
+					<tr>
+						<td style="width:100%;">
+							<a class="mini-button" iconCls="icon-add" onclick="addUser()">增加用户</a>
+							<a class="mini-button" iconCls="icon-edit" onclick="editUser()">编辑用户</a>
+							<a class="mini-button" iconCls="icon-remove" onclick="deleteUser()">删除用户</a>
+						</td>
+						<td style="white-space:nowrap;">
+							<input id="key" class="mini-textbox" emptyText="请输入账号" style="width:150px;" onenter="onKeyEnter" />
+							<a class="mini-button" onclick="onSearchClick()">查询</a>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<div id="userGrid" class="mini-datagrid" sortMode="client"  style="width:100%;" allowResize="true" 
+				url="{:U('Sys/user_list')}" idField="id" multiSelect="true" autoload="true" allowAlternating="true" 
+				showColumnsMenu="true" contextMenu="#gridMenu">
+				<div property="columns">
+					<div type="checkcolumn"></div>
+					<div type="indexcolumn" headerAlign="center">序号</div>
+					<div field="account" align="center" headerAlign="center" hideable="true" allowSort="true">
+						账号
+					</div>
+					<div field="group" align="center" headerAlign="center" allowSort="true">
+						用户组
+					</div>
+					<div field="login_time" align="center" headerAlign="center" dateFormat="yyyy-MM-dd HH:mm:ss" allowSort="true">
+						登录时间
+					</div>
+					<div field="login_count" align="center" headerAlign="center" allowSort="true">
+						登录次数
+					</div>
+					<div field="status" align="center" headerAlign="center" renderer="status">
+						状态
+					</div>
+					<div field="create_time" align="center" headerAlign="center" dateFormat="yyyy-MM-dd HH:mm:ss" allowSort="true">
+						创建时间
+					</div>
+				</div>
+			</div>
+			<ul id="gridMenu" class="mini-contextmenu" onbeforeopen="onBeforeOpen">
+				<li name="add" iconCls="icon-add" onclick="addUser()">新增用户</li>
+				<li name="edit" iconCls="icon-edit" onclick="editUser()">编辑用户</li>
+			</ul>
+		</div>
+
+	</body>
+
+</html>

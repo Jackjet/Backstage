@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=">
+		<title>后台管理系统</title>
+		<style>
+			.myrow {
+				background: #fceee2;
+			}
+		</style>
+		<script src="__PUBLIC__/Common/boot.js"></script>
+		<script>
+			$(function() {
+				mini.parse();
+				mini.get("ruleGrid").on("drawcell", function(e) {
+					var record = e.record,
+						column = e.column,
+						field = e.field,
+						value = e.value;
+					//设置行样式
+					if(record.pid == 0) {
+						e.rowCls = "myrow";
+					}
+				});
+			})
+
+			function ismenu(e) {
+				if(e.value == 1) {
+					return '是';
+				} else if(e.value == 0) {
+					return '否';
+				}
+			}
+
+			function onActionRenderer(e) {
+				var rowIndex = e.rowIndex;
+				var s = '<a class="Edit_Button" href="javascript:onRemoveNode()">删除</a>';
+				return s;
+			}
+
+			function onAddBefore() {
+				var tree = mini.get("ruleGrid");
+				var node = tree.getSelectedNode();
+
+				var newNode = {};
+				tree.addNode(newNode, "before", node);
+			}
+
+			function onAddAfter() {
+				var tree = mini.get("ruleGrid");
+				var node = tree.getSelectedNode();
+
+				var newNode = {};
+				tree.addNode(newNode, "after", node);
+			}
+
+			function onAddNode() {
+				var tree = mini.get("ruleGrid");
+				var node = tree.getSelectedNode();
+
+				var newNode = {};
+				tree.addNode(newNode, "add", node);
+			}
+
+			function onEditNode() {
+				var tree = mini.get("ruleGrid");
+				var node = tree.getSelected();
+
+				tree.beginEditRow(node);
+			}
+
+			function onRemoveNode() {
+				var tree = mini.get("ruleGrid");
+				var node = tree.getSelectedNode();
+				if(node) {
+					tree.removeNode(node);
+				}
+			}
+
+			function cancel() {
+				mini.get("ruleGrid").commitEdit();
+				mini.get("ruleGrid").reject();
+			}
+
+			function saveData() {
+				var grid = mini.get("ruleGrid");
+				grid.commitEdit();
+				var data = grid.getChanges();
+				if(data.length == 0) {
+					return;
+				}
+				mini.confirm("确认修改？", "确认", function(action) {
+					if(action == "ok") {
+						var messageid = mini.loading("操作中，请稍后......");
+						$.post("__SELF__", {
+							data: data
+						}, function(data) {
+							mini.hideMessageBox(messageid);
+							if(data.success) {
+								parent.mini.showMessageBox({
+									showModal: false,
+									width: 250,
+									title: "提示",
+									iconCls: "mini-messagebox-warning",
+									message: "修改成功！",
+									timeout: 1500,
+									x: 'left',
+									y: 'bottom'
+								});
+								grid.accept();
+							} else {
+								mini.alert(data.info);
+								grid.reload();
+							}
+						});
+					} else {
+						return;
+					}
+				});
+			}
+
+			function exportExcel() {
+				var grid = mini.get("ruleGrid");
+				var columns = grid.getBottomColumns();
+
+				function getColumns(columns) {
+					columns = columns.clone();
+					for(var i = columns.length - 1; i >= 0; i--) {
+						var column = columns[i];
+						if(!column.field) {
+							columns.removeAt(i);
+						} else {
+							var c = {
+								header: column.header,
+								field: column.field
+							};
+							columns[i] = c;
+						}
+					}
+					return columns;
+				}
+
+				var columns = getColumns(columns);
+				var json = mini.encode(columns);
+				document.getElementById("excelData").value = json;
+				var excelForm = document.getElementById("excelForm");
+				excelForm.submit();
+
+			}
+			
+			function onBeforeOpen(e) {
+				var grid = mini.get("ruleGrid");
+				var menu = e.sender;
+				var row = grid.getSelected();
+				var rowIndex = grid.indexOf(row);
+				if(!row) {
+					e.cancel = true;
+					//阻止浏览器默认右键菜单
+					e.htmlEvent.preventDefault();
+					return;
+				}
+			}
+		</script>
+	</head>
+
+	<body>
+		<div id="Div" style="padding:0px;padding-top:10px;">
+			<div class="mini-toolbar" style="border-bottom:0;padding:0px;">
+				<table style="width:100%;">
+					<tr>
+						<td style="width:100%;">
+							<a class="mini-button" iconCls="icon-add" onclick="onAddBefore()">增加权限(前)</a>
+							<a class="mini-button" iconCls="icon-add" onclick="onAddAfter()">增加权限(后)</a>
+							<a class="mini-button" iconCls="icon-add" onclick="onAddNode()">增加权限(子权限)</a>
+							<a class="mini-button" iconCls="icon-edit" onclick="onEditNode()">编辑权限</a>
+							<a class="mini-button" iconCls="icon-cancel" onclick="cancel()">取消修改</a>
+							<a class="mini-button" iconCls="icon-save" onclick="saveData()">保存修改</a>
+							<a class="mini-button" iconCls="icon-expand" onclick="exportExcel()">导出Excel</a>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<div id="ruleGrid" class="mini-treegrid" style="width:100%;" url="{:U('Sys/rule_list')}" 
+				showTreeIcon="true" treeColumn="title" idField="id" parentField="pid" resultAsTree="false" 
+				allowResize="true" expandOnLoad="0" showColumnsMenu="true" contextMenu="#gridMenu">
+				<div property="columns">
+					<div type="indexcolumn">序号</div>
+					<div name="title" field="title" headerAlign="center">标题
+						<input property="editor" class="mini-textbox" />
+					</div>
+					<div field="name" headerAlign="center">控制器/方法
+						<input property="editor" class="mini-textbox" />
+					</div>
+					<!--<div field="ismenu" headerAlign="center" renderer="ismenu">是否菜单
+						<input property="editor" class="mini-combobox" textField="text" valueField="id" data="[ {id : 0,text : '否'}, {id : 1,text : '是'} ]" />
+					</div>-->
+					<div field="create_time" headerAlign="center" dateFormat="yyyy-MM-dd">创建日期
+					</div>
+					<div name="action" headerAlign="center" align="center" renderer="onActionRenderer" cellStyle="padding:0;">操作</div>
+				</div>
+			</div>
+			<ul id="gridMenu" class="mini-contextmenu" onbeforeopen="onBeforeOpen">
+				<li name="add" iconCls="icon-add" onclick="onAddAfter()">增加权限(后)</li>
+				<li name="edit" iconCls="icon-edit" onclick="onEditNode()">编辑权限</li>
+			</ul>
+		</div>
+		<div class="description">
+			<h3 style="color:red">ps:此处不可随意改动，如有新增的功能模块请联系开发人员！</h3>
+		</div>
+	</body>
+
+</html>

@@ -1,0 +1,40 @@
+[
+    {
+        "id": "userManage",
+        "text": "人员管理",
+        "children": [
+            {
+                "id": "studentInfo",
+                "text": "学生信息管理"
+            },
+            {
+                "id": "teacherInfo",
+                "text": "教师信息管理"
+            }
+        ]
+    },
+    {
+        "id": "paperManage",
+        "text": "论文管理",
+        "children": [
+            {
+                "id": "setDeadline",
+                "text": "材料提交时限"
+            },
+            {
+                "id": "noticeManage",
+                "text": "通知信息管理"
+            }
+        ]
+    },
+    {
+        "id": "baseManage",
+        "text": "基础管理",
+        "children": [
+            {
+                "id": "majorInfo",
+                "text": "专业信息管理"
+            }
+        ]
+    }
+]

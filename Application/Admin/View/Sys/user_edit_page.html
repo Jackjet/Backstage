@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=">
+		<title>后台管理系统</title>
+		<script src="__PUBLIC__/Common/boot.js"></script>
+		<script>
+			function onSaveClick() {
+				var userForm = new mini.Form("userForm");
+				userForm.validate();
+				if(!userForm.isValid()) {
+					return;
+				}
+				userData = userForm.getData();
+				var messageid = mini.loading("操作中 ...");
+				$.post("{:U('Sys/user_edit')}", userData, function(data, status) {
+					mini.hideMessageBox(messageid);
+					if(status && data.success) {
+						parent.mini.showMessageBox({
+							showModal: false,
+							width: 250,
+							title: "提示",
+							iconCls: "mini-messagebox-warning",
+							message: "修改成功",
+							timeout: 1500,
+							x: 'left',
+							y: 'bottom'
+						});
+						onCloseClick();
+					} else if(status) {
+						mini.alert(data.info);
+					} else {
+						mini.alert("网络异常！");
+					}
+				}, "json");
+			}
+
+			function SetData(data) {
+				// 跨页面传递的数据对象，克隆后才可以安全使用
+				var userForm = new mini.Form("userForm");
+				data = mini.clone(data);
+				userForm.setData(data);
+			}
+		</script>
+	</head>
+
+	<body>
+		<div align="center">
+			<form id="userForm">
+				<table border="0" cellpadding="1" cellspacing="2">
+					<tr>
+						<td class="mini-item" style="width:80px;">用户组：</td>
+						<td class="mini-content">
+							<input class="mini-combobox" name="group_id" textField="title" valueField="id" emptyText="请选择..." url="{:U('Sys/group_list')}" required="true" allowInput="true" showNullItem="false" />
+						</td>
+					</tr>
+					<tr>
+						<input class="mini-hidden" name="id" />
+						<td class="mini-item">账号：</td>
+						<td class="mini-content">
+							<input class="mini-textbox" name="account" id="account" enabled="false" />
+						</td>
+					</tr>
+					<tr>
+						<td class="mini-item">账号状态：</td>
+						<td class="mini-content">
+							<div name="status" class="mini-radiobuttonlist" textField="text" valueField="id" data="[ {id : '1',text : '可用'}, {id : '0',text : '禁用'} ]"></div>
+						</td>
+					</tr>
+				</table>
+			</form>
+		</div>
+		<div align="center" style="margin-top: 20px;">
+			<a class="mini-button" style="margin-right: 20px;" iconCls="icon-save" onclick="onSaveClick()">保存</a>
+			<a class="mini-button" style="margin-left: 20px;" iconCls="icon-cancel" onclick="onCloseClick()">取消</a>
+		</div>
+
+	</body>
+
+</html>

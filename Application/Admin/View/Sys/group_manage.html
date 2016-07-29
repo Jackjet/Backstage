@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=">
+		<title>后台管理系统</title>
+		<script src="__PUBLIC__/Common/boot.js"></script>
+		<script>
+			function onActionRenderer(e) {
+				var id = e.row.id;
+				var rowIndex = e.rowIndex;
+				if(id != 1) {
+					var s = '<a class="Edit_Button" href="javascript:editGroup(' + rowIndex + ')">编辑</a> ' +
+						'<a class="Edit_Button" href="javascript:deleteGruop(\'' + id + '\')">删除</a> ';
+				} else {
+					var s = '<a class="Edit_Button" href="javascript:editGroup(' + rowIndex + ')">编辑</a> ';
+				}
+				return s;
+			}
+
+			function addGroup() {
+				mini.open({
+					url: "{:U('Sys/group_add_page')}",
+					title: "添加用户组",
+					width: 350,
+					height: 280,
+					showMaxButton: true,
+					ondestroy: function(action) {
+						mini.get("groupGrid").reload();
+					}
+				});
+			}
+
+			function editGroup(rowIndex) {
+				var row = mini.get("groupGrid").getRow(rowIndex);
+				mini.open({
+					url: "{:U('Sys/group_edit_page')}",
+					title: "编辑用户组",
+					width: 350,
+					height: 280,
+					showMaxButton: true,
+					onload: function() {
+						var iframe = this.getIFrameEl();
+						iframe.contentWindow.mini.get("id").setValue(row.id);
+						iframe.contentWindow.mini.get("title").setValue(row.title);
+						iframe.contentWindow.mini.get("title_bef").setValue(row.title);
+						iframe.contentWindow.mini.get("rulesTree").setValue(row.rules);
+					},
+					ondestroy: function(action) {
+						mini.get("groupGrid").reload();
+					}
+				});
+			}
+
+			function deleteGruop(id) {
+				mini.confirm("该用户组下的用户将需要重新分配用户组", "确定删除？", function(action) {
+					if(action == "ok") {
+						var messageid = mini.loading("操作中，请稍后......");
+						$.post("{:U('Sys/group_delete')}", {
+							"id": id
+						}, function(data, status) {
+							mini.hideMessageBox(messageid);
+							if(status && data.success) {
+								parent.mini.showMessageBox({
+									showModal: false,
+									width: 250,
+									title: "提示",
+									iconCls: "mini-messagebox-warning",
+									message: "删除成功！",
+									timeout: 1500,
+									x: 'left',
+									y: 'bottom'
+								});
+								mini.get("groupGrid").reload();
+							} else if(status) {
+								mini.alert(data.info);
+							} else {
+								mini.alert("网络异常！");
+							}
+						});
+					}
+				});
+			}
+			function onBeforeOpen(e) {
+				var grid = mini.get("groupGrid");
+				var menu = e.sender;
+
+				var row = grid.getSelected();
+				var rowIndex = grid.indexOf(row);
+				if(!row) {
+					e.cancel = true;
+					//阻止浏览器默认右键菜单
+					e.htmlEvent.preventDefault();
+					return;
+				}
+			}
+		</script>
+	</head>
+
+	<body>
+		<div id="Div" style="padding:0px;padding-top:10px;">
+			<div class="mini-toolbar" style="border-bottom:0;padding:0px;">
+				<table style="width:100%;">
+					<tr>
+						<td style="width:100%;">
+							<a class="mini-button" iconCls="icon-add" onclick="addGroup()">增加组</a>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<div id="groupGrid" class="mini-datagrid" style="width:100%;" url="{:U('Sys/group_list')}"
+				 showPager="false" autoload="true" allowAlternating="true" showColumnsMenu="true" contextMenu="#gridMenu">
+				<div property="columns">
+					<div type="indexcolumn" headerAlign="center">序号</div>
+					<div field="title" align="center" headerAlign="center">
+						用户组
+					</div>
+					<div field="create_time" align="center" headerAlign="center" dateFormat="yyyy-MM-dd HH:mm:ss">
+						创建时间
+					</div>
+					<div name="action" headerAlign="center" align="center" renderer="onActionRenderer" cellStyle="padding:0;">操作</div>
+				</div>
+			</div>
+			<ul id="gridMenu" class="mini-contextmenu" onbeforeopen="onBeforeOpen">
+				<li name="add" iconCls="icon-add" onclick="addGroup()">新增组</li>
+			</ul>
+		</div>
+	</body>
+
+</html>

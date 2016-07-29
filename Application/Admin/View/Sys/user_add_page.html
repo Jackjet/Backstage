@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=">
+		<title>后台管理系统</title>
+		<script src="__PUBLIC__/Common/boot.js"></script>
+		<script>
+			function onAddClick() {
+				var userForm = new mini.Form("userForm");
+				userForm.validate();
+				if(!userForm.isValid()) {
+					return;
+				}
+				userData = userForm.getData();
+				var messageid = mini.loading("操作中 ...");
+				$.post("{:U('Sys/user_add')}", userData, function(data, status) {
+					mini.hideMessageBox(messageid);
+					if(status && data.success) {
+						parent.mini.showMessageBox({
+							showModal: false,
+							width: 250,
+							title: "提示",
+							iconCls: "mini-messagebox-warning",
+							message: "添加成功",
+							timeout: 1500,
+							x: 'left',
+							y: 'bottom'
+						});
+						onCloseClick();
+					} else if(status) {
+						mini.alert(data.info);
+					} else {
+						mini.alert("网络异常！");
+					}
+				}, "json");
+			}
+
+			function accountRepeatValidation(e) {
+				if(e.isValid) {
+					$.ajax({
+						type: "get",
+						url: "{:U('Sys/check_account')}",
+						async: false,
+						data: {
+							"account": mini.get("account").getValue()
+						},
+						dataType: "json",
+						success: function(data) {
+							if(data == 1) {
+								mini.get("accountIsExist").setValue(1);
+							} else {
+								mini.get("accountIsExist").setValue(0);
+							}
+						}
+					});
+					if(mini.get("accountIsExist").getValue() == 1) {
+						e.errorText = "账户名已存在";
+						e.isValid = false;
+					}
+				}
+			}
+
+			function pwdRepeatValidation(e) {
+				if(e.isValid) {
+					var userForm = new mini.Form("userForm");
+					var userData = userForm.getData();
+					if(userData.password2 != userData.password) {
+						e.errorText = "密码输入不一致";
+						e.isValid = false;
+					}
+				}
+			}
+		</script>
+	</head>
+
+	<body>
+		<div align="center">
+			<form id="userForm">
+				<table border="0" cellpadding="1" cellspacing="2">
+					<tr>
+						<td class="mini-item" style="width:80px;">用户组：</td>
+						<td class="mini-content">
+							<input class="mini-combobox" name="group_id" style="width:150px;" textField="title" valueField="id" emptyText="请选择..." url="{:U('Sys/group_list')}" required="true" allowInput="true" showNullItem="true" nullItemText="请选择用户组..." />
+						</td>
+					</tr>
+					<tr>
+						<td class="mini-item">账号：</td>
+						<td class="mini-content">
+							<input class="mini-textbox" name="account" id="account" required="true" onvalidation="accountRepeatValidation" />
+							<input class="mini-hidden" id="accountIsExist" value=0 />
+						</td>
+					</tr>
+					<tr>
+						<td class="mini-item">密码：</td>
+						<td class="mini-content">
+							<input class="mini-password" name="password" required="true" />
+						</td>
+					</tr>
+					<tr>
+						<td class="mini-item">重复密码：</td>
+						<td class="mini-content">
+							<input class="mini-password" name="password2" onvalidation="pwdRepeatValidation" onenter="onAddClick()" />
+						</td>
+					</tr>
+				</table>
+			</form>
+		</div>
+		<div align="center" style="margin-top: 20px;">
+			<a class="mini-button" style="margin-right: 20px;" iconCls="icon-save" onclick="onAddClick()">添加</a>
+			<a class="mini-button" style="margin-left: 20px;" iconCls="icon-cancel" onclick="onCloseClick()">取消</a>
+		</div>
+
+	</body>
+
+</html>
