@@ -6,7 +6,7 @@
 			foreach($arr[0] as $v){
 				foreach($phiz as $key => $value){
 					if($v == '[' . $value . ']'){
-						$content = str_replace($v,'<img src = "' . __PUBLIC__ . '/Home/img/phiz/' . $key . '.gif"/>',$content);
+						$content = str_replace($v,'<img src = "' . __ROOT__ . '/Public/Home/img/phiz/' . $key . '.gif"/>',$content);
 					}	
 				}
 			}
