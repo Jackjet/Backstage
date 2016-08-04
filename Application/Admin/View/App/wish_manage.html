@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=">
+		<title>后台管理系统</title>
+		<script src="__PUBLIC__/Common/boot.js"></script>
+		<script>
+			function onActionRenderer(e) {
+				var id = e.row.id;
+				var rowIndex = e.rowIndex;
+				var s = '<a class="Edit_Button" href="javascript:deleteWish(\'' + id + '\')">删除</a> ';
+				return s;
+			}
+			
+			function deleteWish(id) {
+				mini.confirm("确认删除该愿望？", "确定删除？", function(action) {
+					if(action == "ok") {
+						var messageid = mini.loading("操作中，请稍后......");
+						$.post("{:U('App/wish_delete')}", {
+							"id": id
+						}, function(data, status) {
+							mini.hideMessageBox(messageid);
+							if(status && data.success) {
+								parent.mini.showMessageBox({
+									showModal: false,
+									width: 250,
+									title: "提示",
+									iconCls: "mini-messagebox-warning",
+									message: "删除成功！",
+									timeout: 1500,
+									x: 'left',
+									y: 'bottom'
+								});
+								mini.get("wishGrid").reload();
+							} else if(status) {
+								mini.alert(data.info);
+							} else {
+								mini.alert("网络异常！");
+							}
+						});
+					}
+				});
+			}
+			function onBeforeOpen(e) {
+				var grid = mini.get("wishGrid");
+				var menu = e.sender;
+
+				var row = grid.getSelected();
+				var rowIndex = grid.indexOf(row);
+				if(!row) {
+					e.cancel = true;
+					//阻止浏览器默认右键菜单
+					e.htmlEvent.preventDefault();
+					return;
+				}
+			}
+		</script>
+	</head>
+
+	<body>
+		<div id="Div" style="padding:0px;padding-top:10px;">
+			<div id="wishGrid" class="mini-datagrid" style="width:100%;" url="{:U('App/wish_list')}"
+				allowResize="true" autoload="true" allowAlternating="true" showColumnsMenu="true" contextMenu="#gridMenu">
+				<div property="columns">
+					<div type="indexcolumn" headerAlign="center">序号</div>
+					<div field="id" align="center" headerAlign="center">ID</div>
+					<div field="username" align="center" headerAlign="center">发布者</div>
+					<div field="content" align="center" headerAlign="center">内容</div>
+					<div field="time" align="center" headerAlign="center" dateFormat="yyyy-MM-dd HH:mm:ss">
+						发布时间
+					</div>
+					<div name="action" headerAlign="center" align="center" renderer="onActionRenderer" cellStyle="padding:0;">操作</div>
+				</div>
+			</div>
+			<ul id="gridMenu" class="mini-contextmenu" onbeforeopen="onBeforeOpen">
+				<li name="delete" iconCls="icon-remove" onclick="deleteWish()">删除</li>
+			</ul>
+		</div>
+	</body>
+
+</html>
