@@ -28,6 +28,9 @@ return array(
 	
 	'TMPL_VAR_IDENTIFY'	=>  'array',
 //	'TMPL_FILE_DEPR' => '_',
+	
+	//加载常量类
+	'LOAD_EXT_CONFIG'	=>  'const',
 
 	//***********************************SESSION设置**********************************
 //  'SESSION_OPTIONS'	=>  array(
