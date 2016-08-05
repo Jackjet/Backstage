@@ -5,23 +5,28 @@ use Think\Controller;
 class IndexController extends Controller {
 	public function index(){
 		$wish = M('wish')->select();
+		foreach ($wish as $k => $v) {
+			$wish[$k]['content'] = html_entity_decode($wish[$k]['content']);
+		}
 		$this->assign('wish',$wish)->display();
 	}
 	public function handle(){
-		if (!IS_AJAX) 	halt('页面不存在');
+		$returnData['success'] = false;
 		$data = array (
 			'username' => I('username'),
-			'content' => I('content'),
+			'content' => html_entity_decode(I('content')),
 			'time' => time()
 		);
 		if ($id = M('wish')->data($data)->add()){
 			$data['id'] = $id;
-			$data['content'] = replace_phiz($data['content']);
+//			$data['content'] = replace_expression($data['content']);
 			$data['time'] = date('y-m-d', $data['time']);
-			$data['status'] = 1;
-			$this->ajaxReturn($data,'json');
+			$returnData['success'] = true;
+			$returnData['info'] = $data;
+			$this->ajaxReturn($returnData,'json');
 		}else{
-			$this->ajaxReturn(array('status'=>0),'json');
+			$returnData['info'] = "添加失败！";
+			$this->ajaxReturn($returnData, 'json');
 		}
 	}
 }

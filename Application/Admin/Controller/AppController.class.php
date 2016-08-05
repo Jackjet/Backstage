@@ -31,6 +31,7 @@ class AppController extends AuthController {
 		$data = $user -> where($where) -> order('id') -> limit($index * $size, $index * $size + $size) -> select();
 		foreach ($data as $k => $v) {
 			$data[$k]['time'] = date("Y-m-d H:m:s", $data[$k]['time']);
+//			$data[$k]['content'] = html_entity_decode($data[$k]['content']);
 		}
 		$result = array("total" => $count, "data" => $data);
 		$this -> ajaxReturn($result, 'JSON');

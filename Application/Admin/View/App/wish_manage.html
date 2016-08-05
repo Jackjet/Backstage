@@ -8,15 +8,21 @@
 		<script src="__PUBLIC__/Common/boot.js"></script>
 		<script src="__PUBLIC__/Common/kindeditor/kindeditor-all.js"></script>
 		<script>
-			$(function(){
+			var editor = null;
+			$(function() {
 				mini.parse();
 			});
+
 			function showWindow() {
 				var win = mini.get("win1");
 				win.show();
 			}
+			function onCancelClick() {
+				var win = mini.get("win1");
+				win.hide();
+			}
 			setTimeout(function() {
-				var editor = KindEditor.create('#ke', {
+				editor = KindEditor.create('#ke', {
 					resizeType: 1,
 					uploadJson: 'kindeditor/upload_json.ashx',
 					fileManagerJson: 'kindeditor/file_manager_json.ashx',
@@ -30,14 +36,51 @@
 				});
 			}, 1);
 
+			function onAddClick() {
+				var username = "{$Think.session.account}";
+				var text = editor.html();
+				var messageid = mini.loading("操作中 ...");
+				$.post("{:U('Home/Index/handle')}",{
+					username: username,
+					content: text,
+				},function(data, status){
+					mini.hideMessageBox(messageid);
+					if(status && data.success) {
+						parent.mini.showMessageBox({
+							showModal: false,
+							width: 250,
+							title: "提示",
+							iconCls: "mini-messagebox-warning",
+							message: "添加成功",
+							timeout: 1500,
+							x: 'left',
+							y: 'bottom'
+						});
+						onCancelClick();
+						mini.get("wishGrid").reload();
+					} else if(status) {
+						mini.alert(data.info);
+					} else {
+						mini.alert("网络异常！");
+					}
+				}, 'json');
+			}
+
 			function onActionRenderer(e) {
 				var id = e.row.id;
 				var rowIndex = e.rowIndex;
 				var s = '<a class="Edit_Button" href="javascript:deleteWish(\'' + id + '\')">删除</a> ';
 				return s;
 			}
-
+			
+			function showContent() {
+				var row = mini.get("wishGrid").getSelected();
+				mini.alert(row.content);
+			}
 			function deleteWish(id) {
+				if(id==undefined){
+					id = mini.get("wishGrid").getSelected().id;
+				}
 				mini.confirm("确认删除该愿望？", "确定删除？", function(action) {
 					if(action == "ok") {
 						var messageid = mini.loading("操作中，请稍后......");
@@ -111,20 +154,19 @@
 				</div>
 			</div>
 			<ul id="gridMenu" class="mini-contextmenu" onbeforeopen="onBeforeOpen">
-				<li name="delete" iconCls="icon-remove" onclick="deleteWish()">删除</li>
+				<li name="show" iconCls="icon-search" onclick="showContent()">查看内容</li>
+				<li name="delete" iconCls="icon-remove" onclick="deleteWish()">删除愿望</li>
 			</ul>
 		</div>
-		
-		<div id="win1" class="mini-window" title="KindEditor" style="width:480px;height:350px;" 
-        	showModal="true" allowResize="true" bodyStyle="overflow:hidden;">
-        	<textarea id="ke" name="content" style="width:100%;height:270px;visibility:hidden;">
-        		
+
+		<div id="win1" class="mini-window" title="发布愿望" style="width:480px;height:350px;" showModal="true" allowResize="true" bodyStyle="overflow:hidden;">
+			<textarea id="ke" name="content" style="width:100%;height:270px;visibility:hidden;">
         	</textarea>
-        	<div align="center" style="margin-top: 10px;">
+			<div align="center" style="margin-top: 10px;">
 				<a class="mini-button" style="margin-right: 20px;" iconCls="icon-save" onclick="onAddClick()">添加</a>
-				<a class="mini-button" style="margin-left: 20px;" iconCls="icon-cancel" onclick="onCloseClick()">取消</a>
+				<a class="mini-button" style="margin-left: 20px;" iconCls="icon-cancel" onclick="onCancelClick()">取消</a>
 			</div>
-    	</div>     
+		</div>
 	</body>
 
 </html>
