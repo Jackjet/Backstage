@@ -73,29 +73,34 @@ $(function() {
 
 	$('#send-btn').click(function() {
 		var username = $('input[name=username]');
-		var content = $('textarea[name=content]');
-
+//		var content = $('textarea[name=content]');
+		
+		var content = editor.html();
 		if(username.val() == '') {
 			alert('用户名不能为空');
 			username.focus();
 			return;
 		}
-		if((content.val() == '')) {
+//		if((content.val() == '')) {
+//			alert('内容不能为空');
+//			content.focus();
+//			return;
+//		}
+		if(content == '') {
 			alert('内容不能为空');
-			content.focus();
 			return;
 		}
 
 		$.post(handleUrl, {
 			username: username.val(),
-			content: content.val()
+			content: content
 		}, function(data) {
 			if(data.success) {
 				var str = '<dl class="paper a1">';
-				str += '<dt><span class="username">' + data.username + '</span>';
-				str += '<span class="num">No.' + data.id + '</span>';
-				str += '</dt><dd class="content">' + data.content + '</dd>';
-				str += '<dd class="bottom"><span class="time">' + data.time + '</span>';
+				str += '<dt><span class="username">' + data.info.username + '</span>';
+				str += '<span class="num">No.' + data.info.id + '</span>';
+				str += '</dt><dd class="content">' + data.info.content + '</dd>';
+				str += '<dd class="bottom"><span class="time">' + data.info.time + '</span>';
 				str += '<a href="" class="close"></a>';
 				str += '</dd></dl>';
 
@@ -181,3 +186,19 @@ function check(str) {
 	}
 	return num;
 }
+
+var editor = null;
+setTimeout(function() {
+	editor = KindEditor.create('#ke', {
+		resizeType: 1,
+		uploadJson: 'kindeditor/upload_json.ashx',
+		fileManagerJson: 'kindeditor/file_manager_json.ashx',
+		allowPreviewEmoticons: false,
+		allowImageUpload: true,
+		items: [
+			'fontname', 'fontsize', '|', 'forecolor', 'hilitecolor', 'bold', 'italic', 'underline',
+			'removeformat', '|', 'justifyleft', 'justifycenter', 'justifyright', 'insertorderedlist',
+			'insertunorderedlist', '|', 'emoticons', 'image', 'link'
+		]
+	});
+}, 1);

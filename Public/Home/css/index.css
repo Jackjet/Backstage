@@ -13,7 +13,7 @@ body{
 }
 #top {
 	width: 450px;
-	height: 81px;
+	height: 80px;
 	background: url(../img/top.jpg) no-repeat;
 	padding-top: 45px;
 	padding-left: 550px;
@@ -21,37 +21,30 @@ body{
 #send {
 	display: block;
 	width: 120px;
-	height: 65px;
+	height: 50px;
 	cursor: pointer;
 	background: url(../img/send.png) no-repeat;
 }
 #send-form {
-	width: 360px;
-	height: 400px;
+	width: 400px;
+	height: 520px;
 	background: #fff;
 	display: none;
 	position: absolute;
 	z-index: 999;
 }
 #send-form form p {
-	width: 340px;
+	width: 380px;
 	height: auto;
 	overflow: hidden;
 	padding: 10px;
 }
 #send-form form p label {
 	display: block;
-	width: 340px;
+	width: 350px;
 	height: 24px;
 	line-height: 24px;
 	color: #888888;
-}
-#font-num {
-	font-family :'Constantia,Georgia';
-	font-size: 18px;
-	font-style: italic;
-	font-weight: bold;
-	color: #444444;
 }
 #send-form input{
 	border: 1px solid #ccc;
@@ -69,13 +62,13 @@ body{
 	width: 300px;
 	height: 80px;
 }
-#phiz{
+#expression{
 	width: 300px;
 	height: 30px;
 	line-height: 30px;
 	margin-left: 10px;
 }
-#phiz img {
+#expression img {
 	cursor: pointer;
 	margin-right: 4px;
 }
@@ -90,15 +83,15 @@ input[type="text"]:focus{
     box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6);
 }
 #send-form .title {
-	width: 360px;
-	height: 56px;
+	width: 400px;
+	height: 60px;
 /*	background: url(../img/send-title.png) repeat-x;*/
 }
 #send-form .title span {
 	display: block;
-	width: 260px;
-	height: 56px;
-	line-height: 56px;
+	width: 350px;
+	height: 60px;
+	line-height: 60px;
 	color: #666666;
     font-size: 18px;
     font-weight: bold;
