@@ -15,7 +15,7 @@ class AuthController extends Controller {
 		//session存在时，不需要验证的权限
 		$not_check = array('Index/index','Index/menu','Index/main','Index/clear_cache',
 			'Index/update_pwd','Index/logout','Sys/user_list','Sys/group_list','Sys/rule_list','Sys/rule_get',
-			'Sys/user_add_page','Sys/user_edit_page','Sys/group_add_page','Sys/group_edit_page');
+			'Sys/user_add_page','Sys/user_edit_page','Sys/group_add_page','Sys/group_edit_page','App/wish_list');
 		
 		//当前操作的请求                 模块名/方法名
 		if(session('aid') == 1 || in_array(CONTROLLER_NAME.'/'.ACTION_NAME, $not_check)){
