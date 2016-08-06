@@ -2,7 +2,7 @@
 return array(
 	//'配置项'=>'配置值'
 	'MODULE_ALLOW_LIST'		=>  array('Home','Admin'),
-	'DEFAULT_MODULE'		=>  'Admin',
+	'DEFAULT_MODULE'		=>  'Home',
 	//默认视图层
 	'DEFAULT_V_LAYER'		=>  'View',
 	//操作方法后缀
@@ -31,6 +31,8 @@ return array(
 	
 	//加载常量类
 	'LOAD_EXT_CONFIG'	=>  'const',
+	//加载自定义标签
+	'TAGLIB_BUILD_IN'       =>  'Cx,Common\Tag\My',
 
 	//***********************************SESSION设置**********************************
 //  'SESSION_OPTIONS'	=>  array(
