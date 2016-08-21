@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=">
+		<title>后台管理系统</title>
+		<script src="__PUBLIC__/Common/boot.js"></script>
+		<script>
+			$(function() {
+				mini.parse();
+			});
+
+			function onSearchClick() {
+				var key = mini.get("key").getValue();
+				mini.get("fileGrid").load({
+					key: key
+				});
+			}
+
+			function uploadFile() {
+				mini.open({
+					url: "{:U('App/file_upload')}",
+					title: "上传文件",
+					width: 350,
+					height: 160,
+					ondestroy: function(action) {
+						mini.get("fileGrid").reload();
+					}
+				});
+			}
+
+			function onActionRenderer(e) {
+				var id = e.row.id;
+				var rowIndex = e.rowIndex;
+				var s = '<a class="Edit_Button" href="__URL__/download/id/' + id + '">下载</a> ' +
+					'<a class="Edit_Button" href="javascript:deleteFile(\'' + id + '\')">删除</a> ';
+				return s;
+			}
+
+			function showContent() {
+				var row = mini.get("fileGrid").getSelected();
+				mini.alert(row.content);
+			}
+
+			function deleteFile(id) {
+				if(id == undefined) {
+					id = mini.get("fileGrid").getSelected().id;
+				}
+				mini.confirm("确认删除该文件？", "确定删除？", function(action) {
+					if(action == "ok") {
+						var messageid = mini.loading("操作中，请稍后......");
+						$.post("{:U('App/file_delete')}", {
+							"id": id
+						}, function(data, status) {
+							mini.hideMessageBox(messageid);
+							if(status && data.success) {
+								parent.mini.showMessageBox({
+									showModal: false,
+									width: 250,
+									title: "提示",
+									iconCls: "mini-messagebox-warning",
+									message: "删除成功！",
+									timeout: 1500,
+									x: 'left',
+									y: 'bottom'
+								});
+								mini.get("fileGrid").reload();
+							} else if(status) {
+								mini.alert(data.info);
+							} else {
+								mini.alert("网络异常！");
+							}
+						});
+					}
+				});
+			}
+
+			function onBeforeOpen(e) {
+				var grid = mini.get("fileGrid");
+				var menu = e.sender;
+
+				var row = grid.getSelected();
+				var rowIndex = grid.indexOf(row);
+				if(!row) {
+					e.cancel = true;
+					//阻止浏览器默认右键菜单
+					e.htmlEvent.preventDefault();
+					return;
+				}
+			}
+		</script>
+	</head>
+
+	<body>
+		<div id="Div" style="padding:0px;padding-top:10px;">
+			<div class="mini-toolbar" style="border-bottom:0;padding:0px;">
+				<table style="width:100%;">
+					<tr>
+						<td style="width:100%;">
+							<a class="mini-button" iconCls="icon-add" onclick="uploadFile()">上传文件</a>
+						</td>
+						<td style="white-space:nowrap;">
+							<input id="key" class="mini-textbox" emptyText="请填写主题" style="width:150px;" onenter="onSearchClick()" />
+							<a class="mini-button" onclick="onSearchClick()">查询</a>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<div id="fileGrid" class="mini-datagrid" style="width:100%;" url="{:U('App/file_list')}" allowResize="true" autoload="true" allowAlternating="true" showColumnsMenu="true" contextMenu="#gridMenu">
+				<div property="columns">
+					<div type="indexcolumn" headerAlign="center" width="20px">序号</div>
+					<div field="name" align="center" headerAlign="center" width="50px">文件</div>
+					<div field="topic" align="center" headerAlign="center" width="50px">主题</div>
+					<div field="time" align="center" headerAlign="center" dateFormat="yyyy-MM-dd HH:mm:ss" width="30px">
+						时间
+					</div>
+					<div field="size" align="center" headerAlign="center" width="20px">大小(KB)</div>
+					<div name="action" headerAlign="center" align="center" renderer="onActionRenderer" cellStyle="padding:0;" width="30px">操作</div>
+				</div>
+			</div>
+			<ul id="gridMenu" class="mini-contextmenu" onbeforeopen="onBeforeOpen">
+				<li name="delete" iconCls="icon-remove" onclick="deleteFile()">删除</li>
+			</ul>
+		</div>
+	</body>
+
+</html>

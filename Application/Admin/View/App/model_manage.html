@@ -5,22 +5,49 @@
 		<title>上传图片</title>
 		<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
 		<script src="__PUBLIC__/Common/boot.js" type="text/javascript"></script>
+		<script src="__PUBLIC__/Common/swfupload/swfupload.js" type="text/javascript"></script>
 
 		<webuploadercss />
 	</head>
 
 	<body>
+		<!--webuploader上传-->
+		<form action="{:U('Admin/App/webuploader')}" method="post">
+			<webuploader name="image" url="{:U('Admin/App/ajax_upload')}" word="或将照片拖到这里，单次最多可选300张" />
+			<input type="submit" value="提交">
+		</form>
+		<hr />
+		
 		<form action="{:U('App/upload')}" enctype="multipart/form-data" method="post">
 			<input type="text" name="name" />
 			<input type="file" name="photo" />
 			<input type="submit" value="提交">
 		</form>
+		<hr />
+		
+		<!--swfupload上传-->
+		<input id="fileupload" class="mini-fileupload" name="Fdata" limitType="*.txt" flashUrl="__PUBLIC__/Common/swfupload/swfupload.swf" uploadUrl="{:U('App/swf_upload')}" onuploadsuccess="onUploadSuccess" onuploaderror="onUploadError" onfileselect="onFileSelect" />
+		<a class="mini-button" onclick="startUpload()">上传</a>
 
-		<form action="{:U('Admin/App/webuploader')}" method="post">
-			<webuploader name="image" url="{:U('Admin/App/ajax_upload')}" word="或将照片拖到这里，单次最多可选300张" />
-			<input type="submit" value="提交">
-		</form>
 		<webuploaderjs />
 	</body>
 
 </html>
+
+<script type="text/javascript">
+	mini.parse();
+	function onFileSelect(e) {
+		//mini.alert("选择文件");
+	}
+	function onUploadSuccess(e) {
+		mini.alert("上传成功：" + e.serverData);
+		this.setText("");
+	}
+	function onUploadError(e) {
+		mini.alert(e);
+	}
+	function startUpload() {
+		var fileupload = mini.get("fileupload");
+		fileupload.startUpload();
+	}
+</script>
